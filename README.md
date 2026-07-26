@@ -1,6 +1,6 @@
 # SV MCP Skills
 
-Detailed, tool-by-tool skills that teach AI agents — Claude, Cursor, Windsurf, Cline/Roo, Continue, and any other MCP-capable host — how to use [**SV MCP**](https://seovendor.co/api/mcp) effectively.
+Detailed, tool-by-tool skills that teach AI agents — Claude, OpenClaw, Hermes Agent, Cursor, Windsurf, Cline/Roo, Continue, and any other MCP-capable host — how to use [**SV MCP**](https://seovendor.co/api/mcp) effectively.
 
 SV MCP is a [FastMCP](https://github.com/jlowin/fastmcp) server exposing all 16 tools on the [SV API](https://seovendor.co/api/) — SEO and GEO content generation, keyword research, entity extraction, technical audits, AI-visibility scoring, and more — natively to AI agents over MCP. It's built directly on the [sv-cli](https://github.com/seovendorco/sv-cli) core library, so behavior is identical whether a tool is called from the terminal, the REST API, or an MCP host.
 
