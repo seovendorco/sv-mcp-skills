@@ -48,7 +48,6 @@ One skill file per SV MCP tool, in [`/skills`](./skills):
 | [seogpt-generate.md](./skills/seogpt-generate.md) | `seogpt_generate` | Generate SEO/GEO content across 300+ content types |
 | [seogpt2-create-task.md](./skills/seogpt2-create-task.md) | `seogpt2_create_task` | Produce long-form SEO articles (async) |
 | [content-transformer-rewrite.md](./skills/content-transformer-rewrite.md) | `content_transformer_rewrite` | Rewrite content to a new format, tone, or length |
-| [seo-image-generate.md](./skills/seo-image-generate.md) | `seo_image_generate` | Generate SEO-optimized images from a keyword |
 | [better-keywords-research.md](./skills/better-keywords-research.md) | `better_keywords_research` | Keyword research with volume, CPC, and intent |
 | [insight-igniter-entities.md](./skills/insight-igniter-entities.md) | `insight_igniter_entities` | Extract SEO and GEO entities from a URL |
 | [topical-authority-topics.md](./skills/topical-authority-topics.md) | `topical_authority_topics` | Generate topical authority article plans |
