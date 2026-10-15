@@ -1,9 +1,16 @@
 # Claude.ai
 
-Claude.ai's custom connector UI only needs the base URL — FastMCP mounts the MCP protocol endpoint there, separate from the OAuth callback/discovery routes also served on the same domain.
+SV MCP is a remote server, so the custom connector only needs the base URL.
 
-1. Go to **Settings → Integrations → Add custom integration**
-2. Connector URL: `https://mcp.seovendor.co`
-3. Claude handles the OAuth 2.1 flow automatically — your SV API key is bound during the OAuth handshake, not passed as a parameter on every call.
+1. Open **Customize → Connectors**.
+2. Click **+ → Add custom connector**.
+3. Paste `https://mcp.seovendor.co` and click **Add**.
+4. Click **Connect** and sign in to SV to approve access.
+
+Claude handles the OAuth 2.1 sign-in. Your SV API key stays on the server and is not sent with each call.
+
+On Team and Enterprise plans, an Owner first adds the connector under **Organization settings → Connectors**. Members then connect it themselves.
+
+You need a free SV account first: [sign up](https://access.seovendor.co/signup).
 
 Full reference: [seovendor.co/api/mcp](https://seovendor.co/api/mcp)

@@ -1,85 +1,93 @@
 # SV MCP Skills
 
-Detailed, tool-by-tool skills that teach AI agents — Claude, OpenClaw, Hermes Agent, Cursor, Windsurf, Cline/Roo, Continue, and any other MCP-capable host — how to use [**SV MCP**](https://seovendor.co/api/mcp) effectively.
+Skills that teach AI agents (Claude, Claude Code, OpenClaw, Hermes Agent, Cursor, Windsurf and any other MCP-capable host) how to use [SV MCP](https://seovendor.co/api/mcp) well.
 
-SV MCP is a [FastMCP](https://github.com/jlowin/fastmcp) server exposing all 16 tools on the [SV API](https://seovendor.co/api/) — SEO and GEO content generation, keyword research, entity extraction, technical audits, AI-visibility scoring, and more — natively to AI agents over MCP. It's built directly on the [sv-cli](https://github.com/seovendorco/sv-cli) core library, so behavior is identical whether a tool is called from the terminal, the REST API, or an MCP host.
+SV MCP is the hosted [Model Context Protocol](https://modelcontextprotocol.io) server for the [SV API](https://seovendor.co/api/). It exposes 15 SEO and GEO tools (keyword research, audits, AI-visibility scoring, competitor analysis, content generation) plus two task tools, `get_task_status` and `get_task_result`, for the long-running ones. The server lives at `https://mcp.seovendor.co`. Its source is in [sv-mcp](https://github.com/seovendorco/sv-mcp).
 
-This repo is **not** the MCP server itself — that lives at `https://mcp.seovendor.co` and is documented at [seovendor.co/api/mcp](https://seovendor.co/api/mcp). This repo is the **skill layer**: instructions that tell an agent *when* to reach for a given SV MCP tool, *what* it returns, *how* to chain it with other tools, and *what to watch out for* (async task polling, enum values, rate limits).
+This repo is the skill layer, not the server. Each skill tells an agent when to reach for a tool, what to pass, what comes back, how to chain it with other tools, and what to watch out for.
 
 ## Why skills, not just tool descriptions
 
-An MCP server exposes tool names and JSON schemas — enough for an agent to technically call a tool, but not enough to know when it *should*, what a good chain of tools looks like for a real task ("go from a topic to a published, competitor-checked article"), or how to handle SV-specific behavior like async task polling. These skill files close that gap.
+An MCP server exposes tool names and JSON schemas. That is enough for an agent to call a tool, but not to know when it should, what a good chain of tools looks like for a real task (for example "from a topic to a competitor-checked article"), or how to handle SV-specific behavior such as async tasks and points. These skills close that gap.
 
-## Requirements
+## Install
 
-- An SV API key ([free signup](https://access.seovendor.co/signup))
-- An MCP-capable host — see [`/hosts`](./hosts) for setup instructions specific to Claude Desktop, Claude Code, Claude.ai, Cursor, Windsurf, Cline/Roo, and Continue
-- sv-mcp connected via `https://mcp.seovendor.co` (OAuth 2.1 — no manual API key handling required once connected)
+Each skill is a folder with a `SKILL.md` file, the format Claude Code loads.
 
-## Hosts
+**Claude Code.** Copy the skill folders into your project or your personal skills directory:
 
-Setup instructions per MCP host, in [`/hosts`](./hosts):
+```bash
+git clone https://github.com/seovendorco/sv-mcp-skills.git
+cp -r sv-mcp-skills/skills/sv-* .claude/skills/        # this project only
+# or: cp -r sv-mcp-skills/skills/sv-* ~/.claude/skills/   # all your projects
+```
+
+**Other hosts.** The files are plain Markdown with a short YAML header, so any host that can load external instructions can use them. Point it at the folders in [`skills/`](./skills).
+
+The skills only help once SV MCP is connected. See [Connect SV MCP](#connect-sv-mcp).
+
+## Connect SV MCP
+
+You need a free SV account: [sign up for an API key](https://access.seovendor.co/signup). SV MCP signs you in with OAuth 2.1, so your API key stays on the server.
+
+Setup per host is in [`hosts/`](./hosts):
 
 - [Claude.ai](./hosts/claude-ai.md)
 - [Claude Desktop](./hosts/claude-desktop.md)
 - [Claude Code](./hosts/claude-code.md)
-- [Other hosts](./hosts/other-hosts.md) — Cursor, Windsurf, Cline/Roo, Continue, custom MCP 1.x hosts
-
-## Note on a recently-changed field mapping
-
-`seogpt2_create_task`'s CLI flag for the article title changed from `--keyword` to `--topic`/`--title` (confirmed against the live SV CLI reference page — a cache-busted refetch on 2026-07-26 showed the page now explicitly marks the old `--keyword`-only form as superseded). If you see older scripts, cached docs, or search results showing `sv seogpt2 create-task --keyword "..."` used alone as the title, treat it as stale. See [`skills/seogpt2-create-task.md`](./skills/seogpt2-create-task.md) for the current mapping.
-
-## Cross-tool gotchas
-
-The SV API has a few field-naming inconsistencies worth knowing before writing any automation, all called out in the relevant skill file too:
-
-- **`seogpt2_create_task`**: the article title/topic field is `Topic` (capitalized). CLI flag is `--topic` (alias `--title`) — recently changed from an older `--keyword`-based mapping, now confirmed current on the live CLI docs. `--keyword`/`--kw`/`--keywords` maps to the separate supporting-keywords field (`KW`).
-- **`ranklens_rank`**: the primary field is `entity` (CLI flag `--entity`), not `kw`/`keyword` (both still accepted as fallbacks, but responses always return `entity`). The `competitors` action additionally requires `mgptid` from a prior `rank` response — no CLI flag exists for it, so it needs a raw JSON call.
-- **`better_keywords_research`**'s `filter` action requires a `data` array (max 1000 keyword objects) with no CLI flag — pass the array from a prior `research` call via a raw call.
-- **Capitalized `URL`** (not `url`/`web`): `preliminary_audit_analyze`, `geo_audit_create_task`, and `seo_mapping_create_task` all require the field as `URL`.
-- Several tools (`seogpt_generate`, `content_transformer_rewrite`) share the same 332-option `type` enum, and most tools share a 40-language `lang` enum — always resolve current IDs via the API's own definitions endpoint or the agent's tool discovery rather than hard-coding a number from these docs, since new options can be added over time.
+- [Cursor, VS Code, Windsurf and other hosts](./hosts/other-hosts.md)
 
 ## Skills
 
-One skill file per SV MCP tool, in [`/skills`](./skills):
+| Skill | MCP tool | What it does | Mode |
+|---|---|---|---|
+| [sv-seogpt](./skills/sv-seogpt/SKILL.md) | `seogpt` | Short-form SEO and GEO copy from a keyword: titles, meta descriptions, FAQs, posts | Sync |
+| [sv-prose](./skills/sv-prose/SKILL.md) | `prose` | Full long-form articles | Async |
+| [sv-content-transformer](./skills/sv-content-transformer/SKILL.md) | `content-transformer` | Rewrite existing text into a chosen content type | Sync |
+| [sv-better-keywords](./skills/sv-better-keywords/SKILL.md) | `better-keywords` | Keyword research with volume, CPC and intent, or filter a list | Sync |
+| [sv-insight-igniter](./skills/sv-insight-igniter/SKILL.md) | `insight-igniter` | Entities and topics AI engines associate with a site | Sync |
+| [sv-topical-authority](./skills/sv-topical-authority/SKILL.md) | `topical-authority` | Topical content plan for a keyword | Sync |
+| [sv-core-analysis](./skills/sv-core-analysis/SKILL.md) | `core-analysis` | On-page analysis of a URL against top-ranked pages | Sync |
+| [sv-preliminary-audit](./skills/sv-preliminary-audit/SKILL.md) | `preliminaryaudit` | Quick technical SEO health score for a URL | Sync |
+| [sv-geo-audit](./skills/sv-geo-audit/SKILL.md) | `geogptaudit` | GEO audit: visibility in AI-generated answers for given entities | Async |
+| [sv-seogpt-compare](./skills/sv-seogpt-compare/SKILL.md) | `seogptcompare` | Compare a URL against its top competitors for a keyword | Async |
+| [sv-seo-mapping](./skills/sv-seo-mapping/SKILL.md) | `seogptmapping` | Map keywords to pages on a domain, detect cannibalization | Async |
+| [sv-ranklens](./skills/sv-ranklens/SKILL.md) | `ranklens` | AI brand visibility across repeated engine queries, and competitors | Sync |
+| [sv-content-quality](./skills/sv-content-quality/SKILL.md) | `content-quality` | Score a live page's E-E-A-T and helpful-content quality | Sync |
+| [sv-top-competitors](./skills/sv-top-competitors/SKILL.md) | `top-competitors` | Top-ranking competitor URLs for a keyword | Sync |
+| [sv-marketplace-services](./skills/sv-marketplace-services/SKILL.md) | `marketplace-services` | Search SV's done-for-you services | Sync |
 
-| Skill file | MCP tool | What it does |
-|---|---|---|
-| [seogpt-generate.md](./skills/seogpt-generate.md) | `seogpt_generate` | Generate SEO/GEO content across 300+ content types |
-| [seogpt2-create-task.md](./skills/seogpt2-create-task.md) | `seogpt2_create_task` | Produce long-form SEO articles (async) |
-| [content-transformer-rewrite.md](./skills/content-transformer-rewrite.md) | `content_transformer_rewrite` | Rewrite content to a new format, tone, or length |
-| [better-keywords-research.md](./skills/better-keywords-research.md) | `better_keywords_research` | Keyword research with volume, CPC, and intent |
-| [insight-igniter-entities.md](./skills/insight-igniter-entities.md) | `insight_igniter_entities` | Extract SEO and GEO entities from a URL |
-| [topical-authority-topics.md](./skills/topical-authority-topics.md) | `topical_authority_topics` | Generate topical authority article plans |
-| [core-analysis-analyze.md](./skills/core-analysis-analyze.md) | `core_analysis_analyze` | Analyze a page against SEO competitors |
-| [preliminary-audit-analyze.md](./skills/preliminary-audit-analyze.md) | `preliminary_audit_analyze` | Technical SEO and GEO health check |
-| [geo-audit-create-task.md](./skills/geo-audit-create-task.md) | `geo_audit_create_task` | Audit generative engine visibility (async) |
-| [seogpt-compare-create-task.md](./skills/seogpt-compare-create-task.md) | `seogpt_compare_create_task` | Strategic SEO guidance (async) |
-| [seo-mapping-create-task.md](./skills/seo-mapping-create-task.md) | `seo_mapping_create_task` | Build an SEO map for a site (async) |
-| [ranklens-rank.md](./skills/ranklens-rank.md) | `ranklens_rank` | AI brand visibility report vs. competitors |
-| [content-quality-analyze.md](./skills/content-quality-analyze.md) | `content_quality_analyze` | Score HCU / E-E-A-T quality for a URL |
-| [top-competitors-analyze.md](./skills/top-competitors-analyze.md) | `top_competitors_analyze` | Return the top 10 ranking competitor URLs |
-| [marketplace-services-search.md](./skills/marketplace-services-search.md) | `marketplace_services_search` | Search the SV marketplace for services and packages |
+The image generator in the SV CLI (`seo-image`) is not exposed over MCP, so there is no skill for it.
 
-## Async tools
+## Conventions that apply to every skill
 
-Four tools are async and return a task ID by default rather than blocking: `seogpt2_create_task`, `geo_audit_create_task`, `seogpt_compare_create_task`, `seo_mapping_create_task`. If you ask the agent to wait for the result, sv-mcp polls internally until the task completes. Once wait mode is triggered once in a session, subsequent async calls in that session also wait automatically. Each async skill file calls this out explicitly.
+**Async tools.** `prose`, `geogptaudit`, `seogptcompare` and `seogptmapping` return a `task_id` immediately unless you pass `wait: true`, which waits up to 45 seconds. If the task is still running you get `still_running` and the `task_id`. Then call `get_task_status`, and `get_task_result` once it has finished. Pass `tool` to those two calls if the task was created in a different session.
+
+**Cost.** Successful tool calls use points from the user's SV account. Failed calls, and calls to `get_task_status` and `get_task_result`, do not. Every call to an async tool starts a new, separately charged task, so never call one again just to check progress or retry a slow task.
+
+**Rate limit.** The SV API accepts 1 request per second per key. SV MCP retries automatically.
+
+**Enum IDs.** Many parameters (`type`, `language`, `engine`, `length`, `tone` and others) are integer IDs defined in each tool's schema. Read the IDs there. Never hard-code one from memory, since new options are added over time. If the user's request does not clearly match an option, ask which one they want.
+
+**Parameter names.** These skills use the MCP parameter names (lowercase `keyword`, `url`, `language`, `topic`). The REST API and CLI use different names for some of the same fields, so do not copy field names from those docs into an MCP call.
 
 ## Chaining patterns
 
-Common multi-tool workflows are documented inline in the relevant skill files (e.g. `better_keywords_research` → `seogpt2_create_task` → `content_quality_analyze` → `core_analysis_analyze` for a full brief-to-scored-draft pipeline). See individual skill files for the specific chains each tool participates in.
+- **Research to scored draft:** `sv-better-keywords` → `sv-topical-authority` → `sv-prose` → `sv-content-quality` → `sv-core-analysis`
+- **Competitive brief:** `sv-top-competitors` → `sv-insight-igniter` (per competitor) → `sv-seogpt-compare`
+- **AI visibility picture:** `sv-geo-audit` + `sv-ranklens`, then `sv-marketplace-services` if the user wants a gap fixed for them
+- **Site structure:** `sv-topical-authority` → `sv-seo-mapping`
+
+The individual skill files list the chains each tool takes part in.
 
 ## Contributing
 
-Corrections and additions welcome — open an issue or PR. If you find a tool parameter that's out of date, please link the source (a call log, the OAuth-scoped tool schema, or the [SV API docs](https://seovendor.co/api/)) rather than a guess.
+Corrections and additions are welcome. Open an issue or a pull request. If a parameter or tool name is out of date, include the source (a tool listing from a connected client, or the [SV API docs](https://seovendor.co/api/)).
 
 ## License
 
-MIT
+[MIT](./LICENSE)
 
 ---
 
-Built by [SEO Vendor](https://seovendor.co) — a white-label SEO/GEO platform for agencies, serving ~50,000 platform users since 2004. Powered by [sv-cli](https://github.com/seovendorco/sv-cli) and [sv-mcp](https://seovendor.co/api/mcp).
-#   s v - m c p - s k i l l s 
- 
- 
+Built by [SEO Vendor](https://seovendor.co), a white-label SEO and GEO platform for agencies. Related repos: [sv-mcp](https://github.com/seovendorco/sv-mcp) and [sv-cli](https://github.com/seovendorco/sv-cli).

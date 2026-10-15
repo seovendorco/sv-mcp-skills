@@ -1,15 +1,45 @@
-# Other MCP Hosts
+# Cursor, VS Code, Windsurf and other hosts
 
-Any MCP-compatible host that supports HTTP transport can connect to sv-mcp using the same base URL: `https://mcp.seovendor.co`
+Any MCP client that supports Streamable HTTP can connect to `https://mcp.seovendor.co`. Sign-in uses OAuth 2.1. You need a free SV account first: [sign up](https://access.seovendor.co/signup).
 
-| Host | Where to add | Value |
-|---|---|---|
-| Cursor | Settings → MCP Servers → Add Server → HTTP | `https://mcp.seovendor.co` |
-| Windsurf | Settings → MCP → Add | `https://mcp.seovendor.co` |
-| Cline / Roo | MCP Settings → Remote Server | `https://mcp.seovendor.co`, transport: http |
-| Continue | `config.json` `mcpServers` array | url: `https://mcp.seovendor.co`, transport: `http` |
-| Custom host | Any MCP 1.x SDK | HTTP transport, base URL `https://mcp.seovendor.co` |
+## Cursor
 
-The skill files in [`/skills`](../skills) are plain Markdown and aren't Claude-specific — they can be pointed to by any host that supports loading external instructions/skills alongside an MCP connection.
+`~/.cursor/mcp.json`:
+
+```json
+{ "mcpServers": { "sv-mcp": { "url": "https://mcp.seovendor.co" } } }
+```
+
+## VS Code
+
+`.vscode/mcp.json`:
+
+```json
+{ "servers": { "sv-mcp": { "type": "http", "url": "https://mcp.seovendor.co" } } }
+```
+
+## Windsurf
+
+`~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{ "mcpServers": { "sv-mcp": { "serverUrl": "https://mcp.seovendor.co" } } }
+```
+
+## Clients that only support stdio
+
+Bridge to the hosted server with `mcp-remote`:
+
+```json
+{ "mcpServers": { "sv-mcp": { "command": "npx", "args": ["-y", "mcp-remote", "https://mcp.seovendor.co"] } } }
+```
+
+## Other hosts
+
+For Cline, Roo, Continue or a custom client, use the host's remote or HTTP server option with the URL `https://mcp.seovendor.co`, or use the `mcp-remote` bridge above. Config formats differ between hosts and change often, so check your host's own MCP documentation for the exact file and field names.
+
+## Skills
+
+The files in [`skills/`](../skills) are plain Markdown with a short YAML header, so any host that can load external instructions can use them. They are not specific to Claude.
 
 Full reference: [seovendor.co/api/mcp](https://seovendor.co/api/mcp)
